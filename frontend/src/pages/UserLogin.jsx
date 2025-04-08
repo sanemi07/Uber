@@ -1,22 +1,30 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car } from "lucide-react";
+import axios from "axios";
+import { UserDataContext } from "../Context/UserContext";
 
 const UserLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userData,setuserData]=useState({})
+  const {user,setUser}=useContext(UserDataContext)
 
-  const handleUserLogin = (e) => {
+
+  const handleUserLogin =async (e) => {
     e.preventDefault();
     // TODO: Add login logic using email and password
-    setuserData({
-        email:email,
-        password:password
-    })
-    console.log("Logging in with:", email, password);
-    console.log(userData)
+    const userData={
+      email:email,
+      password:password
+    }
+    const response=await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/login`,userData)
+    if(response.status==200){
+      const data=response.data
+      localStorage.setItem('token',data.token)
+      setUser(data.user)
+      navigate('/UserHome')
+    }
     setEmail('')
     setPassword('')
   };

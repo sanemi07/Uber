@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car } from "lucide-react";
+import axios from "axios";
+import { CaptainDataContext } from "../Context/CaptainContext";
 
 const CaptainLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userData, setUserData] = useState({});
+  const { captain, setCaptain } = useContext(CaptainDataContext);
 
-  const handleCaptainLogin = (e) => {
+  const handleCaptainLogin = async (e) => {
     e.preventDefault();
 
     const loginData = {
@@ -16,10 +18,27 @@ const CaptainLogin = () => {
       password,
     };
 
-    setUserData(loginData);
-    console.log("Logging in with:", loginData);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/captains/login`,
+        loginData
+      );
 
-    // Clear form
+      // If login successful and token exists
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        setCaptain(response.data.captain || {}); // adjust if your backend returns captain details
+        navigate("/CaptainHome");
+      } else {
+        console.error("Login failed: Token not received.");
+        alert("Login failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Login failed. Please check your credentials.");
+    }
+
+    // Clear the form
     setEmail("");
     setPassword("");
   };
@@ -27,11 +46,10 @@ const CaptainLogin = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex flex-col items-center justify-center px-4 text-white">
       {/* Logo */}
-    
-<div className="absolute top-6 left-6 flex items-center gap-2">
-  <Car size={28} className="text-white" />
-  <span className="text-2xl font-bold tracking-tight">Uber Captain</span>
-</div>
+      <div className="absolute top-6 left-6 flex items-center gap-2">
+        <Car size={28} className="text-white" />
+        <span className="text-2xl font-bold tracking-tight">Uber Captain</span>
+      </div>
 
       {/* Login Form */}
       <form

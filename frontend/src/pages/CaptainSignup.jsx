@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car } from "lucide-react";
+import axios from "axios";
+import { CaptainDataContext } from "../Context/CaptainContext";
 
 const CaptainSignup = () => {
   const navigate = useNavigate();
@@ -8,15 +10,51 @@ const CaptainSignup = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [vehicleColor, setVehicleColor] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [vehicleType, setVehicleType] = useState("auto");
+  const [capacity, setCapacity] = useState("");
+  const { captain, setCaptain } = useContext(CaptainDataContext);
 
-  const handleCaptainSignup = (e) => {
+  const handleCaptainSignup = async (e) => {
     e.preventDefault();
-    const newCaptain = { firstName, lastName, email, password };
-    console.log("Signing up Captain:", newCaptain);
+
+    const newCaptain = {
+      fullName: {
+        firstName,
+        lastName,
+      },
+      email,
+      password,
+      vehicle: {
+        color: vehicleColor,       // ✅ correct key
+        plate: vehicleNumber,      // ✅ correct key
+        vehicleType,
+        capacity: Number(capacity),
+      }
+    };
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/api/captains/register`,
+      newCaptain
+    );
+
+    if (response.status === 201) {
+      const data = response.data;
+      localStorage.setItem("token", data.token);
+      setCaptain(data.captain);
+      navigate("/CaptainHome");
+    }
+
+    // Clear form fields
     setFirstName("");
     setLastName("");
     setEmail("");
     setPassword("");
+    setVehicleColor("");
+    setVehicleNumber("");
+    setVehicleType("auto");
+    setCapacity("");
   };
 
   return (
@@ -85,6 +123,55 @@ const CaptainSignup = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded-md bg-white/10 text-white placeholder-gray-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
+          </div>
+
+          {/* New Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm mb-1">Vehicle Color</label>
+              <input
+                type="text"
+                placeholder="Red"
+                value={vehicleColor}
+                onChange={(e) => setVehicleColor(e.target.value)}
+                className="w-full px-4 py-2 rounded-md bg-white/10 text-white placeholder-gray-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">Vehicle Number</label>
+              <input
+                type="text"
+                placeholder="UP32 AB 1234"
+                value={vehicleNumber}
+                onChange={(e) => setVehicleNumber(e.target.value)}
+                className="w-full px-4 py-2 rounded-md bg-white/10 text-white placeholder-gray-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">Vehicle Type</label>
+              <select
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+                className="w-full px-4 py-2 rounded-md bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400"
+              >
+                <option value="auto">Auto</option>
+                <option value="bike">Bike</option>
+                <option value="car">Car</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">Capacity</label>
+              <input
+                type="number"
+                placeholder="4"
+                value={capacity}
+                onChange={(e) => setCapacity(e.target.value)}
+                className="w-full px-4 py-2 rounded-md bg-white/10 text-white placeholder-gray-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+            </div>
           </div>
 
           <button

@@ -1,18 +1,40 @@
-import React, { useState } from "react";
+
+import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Car } from "lucide-react";
+import {UserDataContext} from "../Context/UserContext";
+import axios from 'axios'
 
 const UserSignup = () => {
   const navigate = useNavigate();
+  const { user, setUser } = useContext(UserDataContext)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
 
-  const handleUserSignup = (e) => {
+  const handleUserSignup =  async (e) => {
     e.preventDefault();
-    const newUser = { firstName, lastName, email, password };
-    console.log("Signing up with:", newUser);
+    const newUser = { 
+      fullName:{
+        firstName,
+        lastName
+
+      },
+       email, password
+     };
+    const response =await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/register`,newUser)
+    if(response.status==201){
+      const data=response.data
+      localStorage.setItem('token',data.token)
+     
+      setUser(data.user)
+      navigate("/Home1")
+    }
+
+
+    
     setFirstName("");
     setLastName("");
     setEmail("");
